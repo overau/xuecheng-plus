@@ -25,7 +25,7 @@
            UNION ALL
            SELECT p1.* FROM course_category p1 INNER JOIN t1 ON t1.id = p1.parentid
         )
-        SELECT * FROM t1 ORDER BY orderby;
+        SELECT * FROM t1 ORDER BY t1.id, t1.orderby;
     </select>
 
 </mapper>
