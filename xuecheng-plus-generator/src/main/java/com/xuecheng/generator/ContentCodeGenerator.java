@@ -16,7 +16,9 @@ import java.util.Arrays;
  */
 public class ContentCodeGenerator {
 
-	// TODO 修改服务名以及数据表名
+	/**
+	 * 修改服务名以及数据表名
+	 */
 	private static final String SERVICE_NAME = "content";
 
 	/**
@@ -41,10 +43,10 @@ public class ContentCodeGenerator {
 			"course_market",
 			"teachplan",
 			"teachplan_media",
-			"course_teacher"
+			"course_teacher",
 			//"course_publish",
 			//"course_publish_pre",
-			//"course_category"
+			"course_category"
 	};
 
 	// TODO 默认生成entity，需要生成DTO修改此变量
