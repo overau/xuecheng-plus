@@ -10,3 +10,26 @@ content-type: application/json
 
 ### 课程分类查询
 GET {{content_host}}/content/course-category/tree-nodes
+
+### 新增课程
+POST {{content_host}}/content/course
+Content-Type: application/json
+
+{
+  "name": "测试课程222333",
+  "users": "初级人员",
+  "tags": "标签",
+  "mt": "1-1",
+  "st": "1-1-1",
+  "grade": "204001",
+  "teachmode": "200002",
+  "description": "课程介绍",
+  "pic": "",
+  "charge": "201001",
+  "price": 0,
+  "originalPrice": "",
+  "qq": "15410512",
+  "wechat": "weixin",
+  "phone": "1351852",
+  "validDays": 365
+}
