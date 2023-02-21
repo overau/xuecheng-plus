@@ -11,6 +11,7 @@ import com.xuecheng.content.mapper.CourseCategoryMapper;
 import com.xuecheng.content.mapper.CourseMarketMapper;
 import com.xuecheng.content.model.dto.AddCourseDto;
 import com.xuecheng.content.model.dto.CourseBaseInfoDto;
+import com.xuecheng.content.model.dto.EditCourseDto;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.model.po.CourseCategory;
@@ -44,6 +45,9 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
 
     @Resource
     private CourseCategoryMapper courseCategoryMapper;
+
+    @Resource
+    private CourseMarketServiceImpl courseMarketService;
 
     /**
      * 课程查询
@@ -121,6 +125,7 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
      * @param courseId 课程id
      * @return 课程信息
      */
+    @Override
     public CourseBaseInfoDto getCourseBaseInfo(Long courseId){
         CourseBase courseBase = courseBaseMapper.selectById(courseId);
         if (courseBase == null){
@@ -142,6 +147,45 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         }
 
         return courseBaseInfoDto;
+    }
+
+    /**
+     * 修改课程信息
+     *
+     * @param companyId     培训机构id: 校验本机构只能修改本机构的课程
+     * @param editCourseDto 修改课程信息
+     * @return 课程信息: 基本信息、营销信息
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CourseBaseInfoDto updateCourseBase(Long companyId, EditCourseDto editCourseDto) {
+        CourseBase courseBase = courseBaseMapper.selectById(editCourseDto.getId());
+        if (null == courseBase){
+            throw new XueChengPlusException("课程不存在!");
+        }
+        // 校验本机构只能修改本机构的课程
+        if (!courseBase.getCompanyId().equals(companyId)){
+            throw new XueChengPlusException("只能修改本机构的课程!");
+        }
+        BeanUtils.copyProperties(editCourseDto, courseBase);
+        courseBase.setChangeDate(LocalDateTime.now());
+        int affectRows = courseBaseMapper.updateById(courseBase);
+        if (affectRows <= 0){
+            throw new XueChengPlusException("课程基本数据修改失败!");
+        }
+
+        CourseMarket courseMarket = new CourseMarket();
+        BeanUtils.copyProperties(editCourseDto, courseMarket);
+        if (DictionaryType.CHARGE.getCode().equals(courseMarket.getCharge())){
+            if (courseMarket.getPrice() == null || courseMarket.getPrice() <= 0){
+                throw new XueChengPlusException("课程为收费价格不能为空且大于0!");
+            }
+        }
+        boolean isUpdate = courseMarketService.saveOrUpdate(courseMarket);
+        if (!isUpdate){
+            throw new XueChengPlusException("课程营销数据修改失败!");
+        }
+        return getCourseBaseInfo(editCourseDto.getId());
     }
 
 }
