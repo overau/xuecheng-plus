@@ -3,6 +3,7 @@ package com.xuecheng.content.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuecheng.base.enums.DictionaryType;
+import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
 import com.xuecheng.content.mapper.CourseBaseMapper;
@@ -87,7 +88,7 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         // 1.参数合法性校验
         if (DictionaryType.CHARGE.getCode().equals(addCourseDto.getCharge())){
             if (addCourseDto.getPrice() == null || addCourseDto.getPrice() <= 0){
-                throw new RuntimeException("课程为收费但是价格为空!");
+                throw new XueChengPlusException("课程为收费价格不能为空且大于0!");
             }
         }
         // 2.对数据进行封装
@@ -100,7 +101,7 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         // 3.1保存课程基本信息
         int insert1 = courseBaseMapper.insert(courseBase);
         if (insert1 <= 0){
-            throw new RuntimeException("添加课程失败!");
+            throw new XueChengPlusException("添加课程失败!");
         }
         // 3.2 保存课程营销信息
         CourseMarket courseMarket = new CourseMarket();
@@ -109,7 +110,7 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         courseMarket.setId(courseBaseId);
         int insert2 = courseMarketMapper.insert(courseMarket);
         if (insert2 <= 0){
-            throw new RuntimeException("添加课程失败!");
+            throw new XueChengPlusException("添加课程失败!");
         }
         // 4.组装返回结果
         return getCourseBaseInfo(courseBaseId);
