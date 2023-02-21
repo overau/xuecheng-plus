@@ -72,6 +72,9 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         // 2.分页查询
         Page<CourseBase> page = new Page<>(pageParams.getPageNo(), pageParams.getPageSize());
         Page<CourseBase> courseBasePage = courseBaseMapper.selectPage(page, queryWrapper);
+        if (courseBasePage == null){
+            throw new XueChengPlusException("课程数据为空!");
+        }
         List<CourseBase> items = courseBasePage.getRecords();
         // 3.封装返回数据
         PageResult<CourseBase> pageResult = new PageResult<>(items, page.getTotal(),
