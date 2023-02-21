@@ -16,10 +16,10 @@ POST {{content_host}}/content/course
 Content-Type: application/json
 
 {
-  "name": "测试课程222333",
-  "users": "初级人员",
+  "name": "",
+  "users": "",
   "tags": "标签",
-  "mt": "1-1",
+  "mt": "",
   "st": "1-1-1",
   "grade": "204001",
   "teachmode": "200002",
