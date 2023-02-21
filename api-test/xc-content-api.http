@@ -16,17 +16,17 @@ POST {{content_host}}/content/course
 Content-Type: application/json
 
 {
-  "name": "",
-  "users": "",
+  "name": "123",
+  "users": "1234567890",
   "tags": "标签",
-  "mt": "",
+  "mt": "1-1",
   "st": "1-1-1",
   "grade": "204001",
   "teachmode": "200002",
   "description": "课程介绍",
   "pic": "",
   "charge": "201001",
-  "price": 0,
+  "price": 10,
   "originalPrice": "",
   "qq": "15410512",
   "wechat": "weixin",
@@ -54,5 +54,5 @@ Content-Type: application/json
   "description": "课程系统性地深度探讨 Spring Boot 核心特性，引导小伙伴对 Java 规范的重视，启发对技术原理性的思考，掌握排查问题的技能，以及学习阅读源码的方法和技巧，全面提升研发能力，进军架构师队伍。",
   "pic": "https://cdn.educba.com/academy/wp-content/uploads/2018/08/Spring-BOOT-Interview-questions.jpg",
   "charge": "201001",
-  "price": 0
+  "price": 10
 }
