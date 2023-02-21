@@ -123,6 +123,9 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
      */
     public CourseBaseInfoDto getCourseBaseInfo(Long courseId){
         CourseBase courseBase = courseBaseMapper.selectById(courseId);
+        if (courseBase == null){
+            throw new XueChengPlusException("查询课程不存在!");
+        }
         CourseMarket courseMarket = courseMarketMapper.selectById(courseId);
         CourseBaseInfoDto courseBaseInfoDto = new CourseBaseInfoDto();
         // 拷贝课程属性

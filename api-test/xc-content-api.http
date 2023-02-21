@@ -33,3 +33,6 @@ Content-Type: application/json
   "phone": "1351852",
   "validDays": 365
 }
+
+### 根据id查询课程信息
+GET {{content_host}}/content/course/10

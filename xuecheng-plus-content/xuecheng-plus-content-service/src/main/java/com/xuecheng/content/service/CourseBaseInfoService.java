@@ -31,4 +31,11 @@ public interface CourseBaseInfoService {
      */
     CourseBaseInfoDto createCourseBase(Long companyId, AddCourseDto addCourseDto);
 
+    /**
+     * 根据课程id查询课程基本信息和营销信息
+     * @param courseId 课程id
+     * @return 课程信息
+     */
+    CourseBaseInfoDto getCourseBaseInfo(Long courseId);
+
 }
