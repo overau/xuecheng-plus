@@ -1,8 +1,10 @@
 package com.xuecheng.media.api;
 
+import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
 import com.xuecheng.media.model.dto.QueryMediaParamsDto;
+import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
 import com.xuecheng.media.service.MediaFileService;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 
 /**
  * 媒资文件管理接口
@@ -43,12 +46,33 @@ public class MediaFilesController {
      * @return 上传文件成功响应结果
      */
     @ApiOperation("上传文件")
-    @RequestMapping(value = "/upload/coursefile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequestMapping(value = "/upload/coursefile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public UploadFileResultDto upload(
             @RequestPart("filedata") MultipartFile file,
-            @RequestParam("folder") String folder,
-            @RequestParam("objectName") String objectName) {
-        return null;
+            @RequestParam(value = "folder", required = false) String folder,
+            @RequestParam(value = "objectName", required = false) String objectName) {
+        Long companyId = 1L;
+        UploadFileParamsDto uploadFileParamsDto = new UploadFileParamsDto();
+        uploadFileParamsDto.setFilename(file.getOriginalFilename());
+        String contentType = file.getContentType();
+        uploadFileParamsDto.setContentType(contentType);
+        assert contentType != null;
+        if (contentType.contains("image")) {
+            uploadFileParamsDto.setFileType("001001");
+        } else {
+            uploadFileParamsDto.setFileType("001003");
+        }
+        uploadFileParamsDto.setFileSize(file.getSize());
+
+        UploadFileResultDto uploadFileResultDto;
+        try {
+            uploadFileResultDto = mediaFileService.uploadFile(companyId, uploadFileParamsDto, file.getBytes(),
+                    folder, objectName);
+        } catch (IOException e) {
+            throw new XueChengPlusException("上传文件过程中出错!");
+        }
+
+        return uploadFileResultDto;
     }
 
 }
