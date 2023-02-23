@@ -18,15 +18,14 @@ import io.minio.PutObjectArgs;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -47,6 +46,9 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     @Resource
     MinioClient minioClient;
+
+    @Resource
+    private MediaFileService currentProxy;
 
     @Value("${minio.bucket.files}")
     private String bucketFiles;
@@ -85,7 +87,7 @@ public class MediaFileServiceImpl implements MediaFileService {
         String fileMd5 = DigestUtils.md5Hex(bytes);
         if (StringUtils.isBlank(folder)){
             // 自动生成目录的路径: 年/月/日
-            folder = getFileFolder(new Date(), true, true, true);
+            folder = this.getFileFolder(new Date(), true, true, true);
         } else if (!folder.contains("/")){
             folder = folder + "/";
         }
@@ -98,9 +100,9 @@ public class MediaFileServiceImpl implements MediaFileService {
         objectName = folder + objectName;
 
         // 1.上传文件到minio
-        addMediaFilesToMinIo(bytes, bucketFiles, objectName);
-        // 2.保存到数据库
-        MediaFiles mediaFiles = addMediaFilesToDb(companyId, uploadFileParamsDto, bucketFiles, objectName, fileMd5);
+        this.addMediaFilesToMinIo(bytes, bucketFiles, objectName);
+        // 2.保存到数据库: 获取代理对象(事务)
+        MediaFiles mediaFiles = currentProxy.addMediaFilesToDb(companyId, uploadFileParamsDto, bucketFiles, objectName, fileMd5);
         // 3.准备返回数据
         UploadFileResultDto uploadFileResultDto = new UploadFileResultDto();
         BeanUtils.copyProperties(mediaFiles, uploadFileResultDto);
@@ -111,11 +113,14 @@ public class MediaFileServiceImpl implements MediaFileService {
      * 文件信息保存到数据库
      * @param companyId 机构id
      * @param uploadFileParamsDto 文件信息
+     * @param bucket 桶名称
      * @param objectName 对象名称
      * @param fileId 文件id
      * @return 媒资信息
      */
-    private MediaFiles addMediaFilesToDb(Long companyId, UploadFileParamsDto uploadFileParamsDto, String bucket, String objectName, String fileId) {
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public MediaFiles addMediaFilesToDb(Long companyId, UploadFileParamsDto uploadFileParamsDto, String bucket, String objectName, String fileId) {
         MediaFiles mediaFiles = mediaFilesMapper.selectById(fileId);
         if (null == mediaFiles){
             mediaFiles = new MediaFiles();
