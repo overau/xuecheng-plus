@@ -4,15 +4,19 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.j256.simplemagic.ContentInfo;
 import com.j256.simplemagic.ContentInfoUtil;
+import com.xuecheng.base.constant.SysConstants;
 import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.mapper.MediaFilesMapper;
 import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
 import com.xuecheng.media.service.MediaFileService;
+import io.minio.GetObjectArgs;
+import io.minio.GetObjectResponse;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.extern.slf4j.Slf4j;
@@ -88,8 +92,8 @@ public class MediaFileServiceImpl implements MediaFileService {
         if (StringUtils.isBlank(folder)){
             // 自动生成目录的路径: 年/月/日
             folder = this.getFileFolder(new Date(), true, true, true);
-        } else if (!folder.contains("/")){
-            folder = folder + "/";
+        } else if (!folder.contains(SysConstants.FILE_SEPARATOR)){
+            folder = folder + SysConstants.FILE_SEPARATOR;
         }
 
         String filename = uploadFileParamsDto.getFilename();
@@ -141,6 +145,91 @@ public class MediaFileServiceImpl implements MediaFileService {
     }
 
     /**
+     * 文件上传前检查文件
+     *
+     * @param fileMd5 文件md5
+     * @return RestResponse<Boolean>
+     */
+    @Override
+    public RestResponse<Boolean> checkFile(String fileMd5) {
+        // 1.检查数据库表是否存在上传记录
+        MediaFiles mediaFiles = mediaFilesMapper.selectById(fileMd5);
+        if (null == mediaFiles){
+            return RestResponse.success(false);
+        }
+        // 2.检查minio文件系统是否存在文件
+        GetObjectArgs objectArgs = GetObjectArgs.builder()
+                .bucket(mediaFiles.getBucket())
+                .object(mediaFiles.getFilePath())
+                .build();
+        try {
+            GetObjectResponse response = minioClient.getObject(objectArgs);
+            if (null == response){
+                return RestResponse.success(false);
+            }
+        } catch (Exception e) {
+            return RestResponse.success(false);
+        }
+        return RestResponse.success(true);
+    }
+
+    /**
+     * 分块文件上传前的检测
+     *
+     * @param fileMd5    文件md5
+     * @param chunkIndex 文件分块序号
+     * @return RestResponse<Boolean>
+     */
+    @Override
+    public RestResponse<Boolean> checkChunk(String fileMd5, int chunkIndex) {
+        String chunkName = this.getChunkFileFolderPath(fileMd5) + chunkIndex;
+        GetObjectArgs objectArgs = GetObjectArgs.builder()
+                .bucket(bucketFiles)
+                .object(chunkName)
+                .build();
+        try {
+            GetObjectResponse response = minioClient.getObject(objectArgs);
+            if (response == null){
+                return RestResponse.success(false);
+            }
+        } catch (Exception e){
+            return RestResponse.success(false);
+        }
+        return RestResponse.success(true);
+    }
+
+    /**
+     * 上传分块文件
+     *
+     * @param bytes      文件字节数据
+     * @param fileMd5    文件md5
+     * @param chunkIndex 文件分块序号
+     * @return RestResponse<Object>
+     */
+    @Override
+    public RestResponse<?> uploadChunk(byte[] bytes, String fileMd5, int chunkIndex) {
+        String chunkName = this.getChunkFileFolderPath(fileMd5) + chunkIndex;
+        try {
+            this.addMediaFilesToMinIo(bytes, bucketFiles, chunkName);
+            return RestResponse.success(true);
+        } catch (Exception e) {
+            log.error("上传分块文件: {}, 失败: {}", chunkName, e.getMessage());
+        }
+        return RestResponse.validFail(false, "上传分块失败!");
+    }
+
+    /**
+     * 得到分块文件的目录
+     * @param fileMd5 文件md5
+     * @return 分块文件的目录
+     */
+    private String getChunkFileFolderPath(String fileMd5) {
+        return fileMd5.charAt(0) + SysConstants.FILE_SEPARATOR + fileMd5.charAt(1) +
+                SysConstants.FILE_SEPARATOR + fileMd5 + SysConstants.FILE_SEPARATOR + "chunk"
+                + SysConstants.FILE_SEPARATOR;
+    }
+
+    /**
      * 将文件上传到分布式文件系统
      * @param bytes 文件字节数组
      * @param bucket 桶名称
@@ -149,7 +238,7 @@ public class MediaFileServiceImpl implements MediaFileService {
     private void addMediaFilesToMinIo(byte[] bytes, String bucket, String objectName) {
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes)) {
             String contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
-            if (objectName.contains(".")){
+            if (objectName.contains(SysConstants.DOT)){
                 String extension = objectName.substring(objectName.lastIndexOf('.'));
                 ContentInfo extensionMatch = ContentInfoUtil.findExtensionMatch(extension);
                 if (extensionMatch != null){
@@ -185,7 +274,7 @@ public class MediaFileServiceImpl implements MediaFileService {
         String dateString = sdf.format(date);
         //取出年、月、日
         String[] dateStringArray = dateString.split("-");
-        StringBuffer folderString = new StringBuffer();
+        StringBuilder folderString = new StringBuilder();
         if(year){
             folderString.append(dateStringArray[0]);
             folderString.append("/");

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 
 /**
  * 大文件上传管理
@@ -32,7 +33,7 @@ public class BigFilesController {
     @ApiOperation(value = "文件上传前检查文件")
     @PostMapping("/upload/checkfile")
     public RestResponse<Boolean> checkFile(@RequestParam("fileMd5") String fileMd5) {
-        return null;
+        return mediaFileService.checkFile(fileMd5);
     }
 
 
@@ -46,7 +47,7 @@ public class BigFilesController {
     @PostMapping("/upload/checkchunk")
     public RestResponse<Boolean> checkChunk(@RequestParam("fileMd5") String fileMd5,
                                             @RequestParam("chunk") int chunk) {
-        return null;
+        return mediaFileService.checkChunk(fileMd5, chunk);
     }
 
     /**
@@ -58,10 +59,10 @@ public class BigFilesController {
      */
     @ApiOperation(value = "上传分块文件")
     @PostMapping("/upload/uploadchunk")
-    public RestResponse<Object> uploadChunk(@RequestParam("file") MultipartFile file,
+    public RestResponse<?> uploadChunk(@RequestParam("file") MultipartFile file,
                                     @RequestParam("fileMd5") String fileMd5,
-                                    @RequestParam("chunk") int chunk) {
-        return null;
+                                    @RequestParam("chunk") int chunk) throws IOException {
+        return mediaFileService.uploadChunk(file.getBytes(), fileMd5, chunk);
     }
 
     /**
