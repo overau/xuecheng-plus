@@ -18,4 +18,13 @@ public class SysConstants {
      */
     public static final String DOT = ".";
 
+    /**
+     * 分块临时文件前缀
+     */
+    public static final String TEMP_CHUNK_PREDIX = "chunk";
+
+    /**
+     * 合并分块临时文件前缀
+     */
+    public static final String TEMP_MERGE_PREDIX = "merge";
 }
