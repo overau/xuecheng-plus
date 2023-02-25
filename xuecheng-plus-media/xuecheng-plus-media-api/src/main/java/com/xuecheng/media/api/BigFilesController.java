@@ -74,7 +74,7 @@ public class BigFilesController {
      */
     @ApiOperation(value = "合并文件")
     @PostMapping("/upload/mergechunks")
-    public RestResponse<Object> mergeChunks(@RequestParam("fileMd5") String fileMd5,
+    public RestResponse<?> mergeChunks(@RequestParam("fileMd5") String fileMd5,
                                     @RequestParam("fileName") String fileName,
                                     @RequestParam("chunkTotal") int chunkTotal) {
         return null;

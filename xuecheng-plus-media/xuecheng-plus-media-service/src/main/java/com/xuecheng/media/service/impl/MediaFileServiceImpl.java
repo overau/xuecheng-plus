@@ -21,6 +21,7 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayInputStream;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -56,6 +57,9 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     @Value("${minio.bucket.files}")
     private String bucketFiles;
+
+    @Value("${minio.bucket.videofiles}")
+    private String videoFiles;
 
     @Override
     public PageResult<MediaFiles> queryMediaFiles(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto) {
@@ -184,7 +188,7 @@ public class MediaFileServiceImpl implements MediaFileService {
     public RestResponse<Boolean> checkChunk(String fileMd5, int chunkIndex) {
         String chunkName = this.getChunkFileFolderPath(fileMd5) + chunkIndex;
         GetObjectArgs objectArgs = GetObjectArgs.builder()
-                .bucket(bucketFiles)
+                .bucket(videoFiles)
                 .object(chunkName)
                 .build();
         try {
@@ -210,12 +214,81 @@ public class MediaFileServiceImpl implements MediaFileService {
     public RestResponse<?> uploadChunk(byte[] bytes, String fileMd5, int chunkIndex) {
         String chunkName = this.getChunkFileFolderPath(fileMd5) + chunkIndex;
         try {
-            this.addMediaFilesToMinIo(bytes, bucketFiles, chunkName);
+            this.addMediaFilesToMinIo(bytes, videoFiles, chunkName);
             return RestResponse.success(true);
         } catch (Exception e) {
             log.error("上传分块文件: {}, 失败: {}", chunkName, e.getMessage());
         }
         return RestResponse.validFail(false, "上传分块失败!");
+    }
+
+    /**
+     * 合并文件
+     *
+     * @param companyId           机构id
+     * @param fileMd5             文件md5
+     * @param chunkTotal          文件分块总数
+     * @param uploadFileParamsDto 文件信息
+     * @return RestResponse
+     */
+    @Override
+    public RestResponse<?> mergeChunks(Long companyId, String fileMd5, int chunkTotal, UploadFileParamsDto uploadFileParamsDto) {
+        // 1.下载分块
+        File[] files = this.downloadChunk(fileMd5, chunkTotal);
+        // 2.合并分块
+
+        // 3.文件入库
+
+        // 4.文件写入minio
+        return null;
+    }
+
+    /**
+     * 下载分块
+     * @param fileMd5 文件md5
+     * @param chunkTotal 文件分块总数
+     * @return 分块文件数组
+     */
+    private File[] downloadChunk(String fileMd5, int chunkTotal){
+        String chunkFolderPath = this.getChunkFileFolderPath(fileMd5);
+        File[] files = new File[chunkTotal];
+        for (int i = 0; i < chunkTotal; i++) {
+            String chunkName = chunkFolderPath + i;
+            // 1.创建临时文件
+            File chunkTemp;
+            try {
+                chunkTemp = File.createTempFile("chunk", null);
+            } catch (IOException e) {
+                log.error("创建分块临时文件出错: {}", e.getMessage());
+                throw new XueChengPlusException("创建分块临时文件出错!");
+            }
+            // 2.下载分块文件
+            this.downloadFileFromMinIo(chunkTemp, videoFiles, chunkName);
+            // 分块文件加入数组
+            files[i] = chunkTemp;
+        }
+        return files;
+    }
+
+    /**
+     * 从minio下载文件到传入的文件对象
+     *
+     * @param file       需要保存到的文件
+     * @param bucket     桶的名称
+     * @param objectName 对象名称
+     */
+    private void downloadFileFromMinIo(File file, String bucket, String objectName) {
+        GetObjectArgs getObjectArgs = GetObjectArgs.builder()
+                .bucket(bucket)
+                .object(objectName)
+                .build();
+        try (InputStream inputStream = minioClient.getObject(getObjectArgs);
+             FileOutputStream outputStream = new FileOutputStream(file)) {
+            IOUtils.copy(inputStream, outputStream);
+        } catch (Exception e){
+            log.error("分块文件下载错误: {}", e.getMessage());
+            throw new XueChengPlusException("分块文件下载错误!");
+        }
     }
 
     /**
