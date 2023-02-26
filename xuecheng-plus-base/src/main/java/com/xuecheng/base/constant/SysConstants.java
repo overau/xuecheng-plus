@@ -37,4 +37,19 @@ public class SysConstants {
      * mp4视频mimeType
      */
     public static final CharSequence MP4_TYPE = "mp4";
+
+    /**
+     * avi视频mimeType
+     */
+    public static final CharSequence AVI_TYPE = "video/x-msvideo";
+
+    /**
+     * 视频任务未处理: 1
+     */
+    public static final String VIDEO_UN_FINISH = "1";
+
+    /**
+     * 视频任务处理完成: 2
+     */
+    public static final String VIDEO_FINISH = "2";
 }

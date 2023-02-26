@@ -10,10 +10,12 @@ import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
 import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.mapper.MediaFilesMapper;
+import com.xuecheng.media.mapper.MediaProcessMapper;
 import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
+import com.xuecheng.media.model.po.MediaProcess;
 import com.xuecheng.media.service.MediaFileService;
 import io.minio.*;
 import lombok.extern.slf4j.Slf4j;
@@ -44,10 +46,13 @@ import java.util.List;
 public class MediaFileServiceImpl implements MediaFileService {
 
     @Resource
-    MediaFilesMapper mediaFilesMapper;
+    private MediaFilesMapper mediaFilesMapper;
 
     @Resource
-    MinioClient minioClient;
+    private MediaProcessMapper mediaProcessMapper;
+
+    @Resource
+    private MinioClient minioClient;
 
     @Resource
     private MediaFileService currentProxy;
@@ -149,6 +154,13 @@ public class MediaFileServiceImpl implements MediaFileService {
             mediaFiles.setAuditStatus("002003");
             // 插入文件表
             mediaFilesMapper.insert(mediaFiles);
+            // avi格式视频
+            if (SysConstants.AVI_TYPE.equals(mimeType)){
+                MediaProcess mediaProcess = new MediaProcess();
+                BeanUtils.copyProperties(mediaFiles, mediaProcess);
+                mediaProcess.setStatus(SysConstants.VIDEO_UN_FINISH);
+                mediaProcessMapper.insert(mediaProcess);
+            }
         }
         return mediaFiles;
     }
