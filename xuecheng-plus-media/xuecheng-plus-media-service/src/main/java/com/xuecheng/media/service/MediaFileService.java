@@ -7,7 +7,8 @@ import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
-import org.springframework.web.bind.annotation.PathVariable;
+
+import java.io.File;
 
 /**
  * @author Mr.M
@@ -92,4 +93,21 @@ public interface MediaFileService {
      * @return 媒资信息
      */
     MediaFiles getPlayUrlByMediaId(String id);
+
+    /**
+     * 从minio下载文件到传入的文件对象
+     *
+     * @param file       需要保存到的文件
+     * @param bucket     桶的名称
+     * @param objectName 对象名称
+     */
+    void downloadFileFromMinIo(File file, String bucket, String objectName);
+
+    /**
+     * 将文件上传到分布式文件系统(minio的uploadObject上传)
+     * @param filePath 文件路径
+     * @param bucket 桶的名称
+     * @param objectName 对象名称
+     */
+    void addMediaFilesToMinIo(String filePath, String bucket, String objectName);
 }

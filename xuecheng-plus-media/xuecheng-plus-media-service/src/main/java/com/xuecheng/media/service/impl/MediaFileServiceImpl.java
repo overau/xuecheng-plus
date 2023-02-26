@@ -403,7 +403,8 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param bucket     桶的名称
      * @param objectName 对象名称
      */
-    private void downloadFileFromMinIo(File file, String bucket, String objectName) {
+    @Override
+    public void downloadFileFromMinIo(File file, String bucket, String objectName) {
         GetObjectArgs getObjectArgs = GetObjectArgs.builder()
                 .bucket(bucket)
                 .object(objectName)
@@ -464,7 +465,8 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param bucket 桶的名称
      * @param objectName 对象名称
      */
-    private void addMediaFilesToMinIo(String filePath, String bucket, String objectName){
+    @Override
+    public void addMediaFilesToMinIo(String filePath, String bucket, String objectName){
         String extension = null;
         if(objectName.contains(SysConstants.DOT)){
             extension = objectName.substring(objectName.lastIndexOf("."));
