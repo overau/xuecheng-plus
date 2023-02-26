@@ -59,18 +59,20 @@ public class MediaFileServiceImpl implements MediaFileService {
     private String bucketVideoFiles;
 
     @Override
-    public PageResult<MediaFiles> queryMediaFiles(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto) {
-
-        //构建查询条件对象
+    public PageResult<MediaFiles> queryMediaFiles(Long companyId, PageParams pageParams,
+                                                  QueryMediaParamsDto queryMediaParamsDto) {
         LambdaQueryWrapper<MediaFiles> queryWrapper = new LambdaQueryWrapper<>();
-
-        //分页对象
+        // 文件名称模糊查询
+        queryWrapper.like(StringUtils.isNotBlank(queryMediaParamsDto.getFilename()),
+                MediaFiles::getFilename, queryMediaParamsDto.getFilename());
+        // 文件类型查询
+        queryWrapper.eq(StringUtils.isNotBlank(queryMediaParamsDto.getFileType()),
+                MediaFiles::getFileType, queryMediaParamsDto.getFileType());
+        // 按上传时间倒序排列
+        queryWrapper.orderByDesc(MediaFiles::getCreateDate);
         Page<MediaFiles> page = new Page<>(pageParams.getPageNo(), pageParams.getPageSize());
-        // 查询数据内容获得结果
         Page<MediaFiles> pageResult = mediaFilesMapper.selectPage(page, queryWrapper);
-        // 获取数据列表
         List<MediaFiles> list = pageResult.getRecords();
-        // 获取数据总数
         long total = pageResult.getTotal();
         // 构建结果集
         return new PageResult<>(list, total, pageParams.getPageNo(), pageParams.getPageSize());
