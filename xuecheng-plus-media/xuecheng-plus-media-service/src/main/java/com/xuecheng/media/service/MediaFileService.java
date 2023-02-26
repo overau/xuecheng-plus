@@ -7,6 +7,7 @@ import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
+import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  * @author Mr.M
@@ -84,4 +85,11 @@ public interface MediaFileService {
      */
     RestResponse<?> mergeChunks(Long companyId, String fileMd5, int chunkTotal,
                                      UploadFileParamsDto uploadFileParamsDto);
+
+    /**
+     * 根据id查询媒资信息
+     * @param id 文件id
+     * @return 媒资信息
+     */
+    MediaFiles getPlayUrlByMediaId(String id);
 }

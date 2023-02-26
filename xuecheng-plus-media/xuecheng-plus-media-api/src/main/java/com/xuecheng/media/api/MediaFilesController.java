@@ -1,8 +1,10 @@
 package com.xuecheng.media.api;
 
+import com.xuecheng.base.constant.SysConstants;
 import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
@@ -57,7 +59,7 @@ public class MediaFilesController {
         String contentType = file.getContentType();
         uploadFileParamsDto.setContentType(contentType);
         assert contentType != null;
-        if (contentType.contains("image")) {
+        if (contentType.contains(SysConstants.IMAGE_TYPE)) {
             uploadFileParamsDto.setFileType("001001");
         } else {
             uploadFileParamsDto.setFileType("001003");
@@ -73,6 +75,13 @@ public class MediaFilesController {
         }
 
         return uploadFileResultDto;
+    }
+
+    @ApiOperation("预览文件")
+    @GetMapping("/preview/{mediaId}")
+    public RestResponse<String> getPlayUrlByMediaId(@PathVariable("mediaId") String mediaId){
+        MediaFiles mediaFiles = mediaFileService.getPlayUrlByMediaId(mediaId);
+        return RestResponse.success(mediaFiles.getUrl());
     }
 
 }

@@ -135,7 +135,13 @@ public class MediaFileServiceImpl implements MediaFileService {
             mediaFiles.setCompanyId(companyId);
             mediaFiles.setBucket(bucket);
             mediaFiles.setFilePath(objectName);
-            mediaFiles.setUrl("/" + bucket + "/" + objectName);
+            String filename = uploadFileParamsDto.getFilename();
+            String extension = filename.substring(filename.lastIndexOf(SysConstants.DOT));
+            String mimeType = this.getMimeTypeByExtension(extension);
+            // image和mp4支持预览，直接存储预览url
+            if (mimeType.contains(SysConstants.IMAGE_TYPE) || mimeType.contains(SysConstants.MP4_TYPE)){
+                mediaFiles.setUrl("/" + bucket + "/" + objectName);
+            }
             mediaFiles.setCreateDate(LocalDateTime.now());
             mediaFiles.setStatus("1");
             mediaFiles.setAuditStatus("002003");
@@ -237,6 +243,32 @@ public class MediaFileServiceImpl implements MediaFileService {
         this.mergeChunkFile(companyId, fileMd5, uploadFileParamsDto, chunkFiles);
         return RestResponse.success(true);
     }
+
+    /**
+     * 根据id查询媒资信息
+     *
+     * @param id 文件id
+     * @return 媒资信息
+     */
+    @Override
+    public MediaFiles getPlayUrlByMediaId(String id) {
+        if (StringUtils.isBlank(id)){
+            throw new XueChengPlusException("文件id不合法!");
+        }
+        MediaFiles mediaFiles = mediaFilesMapper.selectById(id);
+        if (null == mediaFiles){
+            throw new XueChengPlusException("查询文件不存在!");
+        }
+        if (mediaFiles.getUrl() == null){
+            throw new XueChengPlusException("当前文件正在处理，不能预览，请稍后!");
+        }
+        RestResponse<Boolean> checkFile = this.checkFile(id);
+        if (!checkFile.getResult()){
+            throw new XueChengPlusException("当前文件已丢失，请重新上传!");
+        }
+        return mediaFiles;
+    }
+
 
     /**
      * 合并分块文件

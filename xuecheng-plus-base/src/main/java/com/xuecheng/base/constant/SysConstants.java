@@ -27,4 +27,14 @@ public class SysConstants {
      * 合并分块临时文件前缀
      */
     public static final String TEMP_MERGE_PREDIX = "merge";
+
+    /**
+     * 图片mimeType
+     */
+    public static final CharSequence IMAGE_TYPE = "image";
+
+    /**
+     * mp4视频mimeType
+     */
+    public static final CharSequence MP4_TYPE = "mp4";
 }
