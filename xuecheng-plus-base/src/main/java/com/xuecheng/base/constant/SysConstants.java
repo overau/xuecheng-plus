@@ -52,4 +52,9 @@ public class SysConstants {
      * 视频任务处理完成: 2
      */
     public static final String VIDEO_FINISH = "2";
+
+    /**
+     * 视频任务处理失败
+     */
+    public static final String VIDEO_FAILURE = "3";
 }
