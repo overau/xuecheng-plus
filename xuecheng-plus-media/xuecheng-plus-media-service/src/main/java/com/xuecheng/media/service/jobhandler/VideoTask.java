@@ -75,16 +75,16 @@ public class VideoTask {
             String bucket = mediaProcess.getBucket();
             String filePath = mediaProcess.getFilePath();
             String fileId = mediaProcess.getFileId();
-            String filename = mediaProcess.getFilename();
             //将要处理的文件下载到服务器上
-            File originalFile = null;
+            File originalFile;
             //处理结束的视频文件
-            File mp4File = null;
+            File mp4File;
             try {
                 originalFile = File.createTempFile("original", null);
                 mp4File = File.createTempFile("mp4", ".mp4");
             } catch (IOException e) {
                 log.error("处理视频前创建临时文件失败");
+                throw new XueChengPlusException("处理视频前创建临时文件失败");
             }
             // 下载文件
             mediaFileService.downloadFileFromMinIo(originalFile, bucket, filePath);
@@ -105,7 +105,11 @@ public class VideoTask {
         }));
 
         // 等待多线程视频转码任务运行完成(阻塞): 最多等待30分钟
-        countDownLatch.await(30, TimeUnit.MINUTES);
+        boolean isAwait = countDownLatch.await(30, TimeUnit.MINUTES);
+        if (!isAwait){
+            log.error("多线程视频转码任务出错!分片索引: {}, 任务列表: {}", shardIndex, mediaProcessList);
+            throw new XueChengPlusException("多线程视频转码任务出错!");
+        }
     }
 
     /**

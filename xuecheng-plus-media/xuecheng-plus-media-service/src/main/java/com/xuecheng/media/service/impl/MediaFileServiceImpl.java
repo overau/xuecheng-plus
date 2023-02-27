@@ -413,8 +413,8 @@ public class MediaFileServiceImpl implements MediaFileService {
              FileOutputStream outputStream = new FileOutputStream(file)) {
             IOUtils.copy(inputStream, outputStream);
         } catch (Exception e){
-            log.error("分块文件下载错误: {}", e.getMessage());
-            throw new XueChengPlusException("分块文件下载错误!");
+            log.error("文件下载错误: {}", e.getMessage());
+            throw new XueChengPlusException("文件下载错误!");
         }
     }
 
