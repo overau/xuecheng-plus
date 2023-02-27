@@ -488,6 +488,62 @@ public class MediaFileServiceImpl implements MediaFileService {
     }
 
     /**
+     * 移除媒资文件
+     *
+     * @param fileMd5 文件md5
+     * @return 受影响的行数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int removeMediaFiles(String fileMd5) {
+        // 1.删除媒资文件信息表
+        MediaFiles mediaFiles = mediaFilesMapper.selectById(fileMd5);
+        if (null == mediaFiles){
+            throw new XueChengPlusException("当前文件信息不存在，不能删除!");
+        }
+        int affectRows = mediaFilesMapper.deleteById(fileMd5);
+        if (affectRows <= 0){
+            log.error("媒资文件表文件信息删除失败!文件md5: {}", fileMd5);
+            throw new XueChengPlusException("媒资文件表文件信息删除失败!");
+        }
+        // 2.删除任务表的任务
+        LambdaQueryWrapper<MediaProcess> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MediaProcess::getFileId, fileMd5);
+        MediaProcess mediaProcess = mediaProcessMapper.selectOne(queryWrapper);
+        if (mediaProcess != null && SysConstants.VIDEO_UN_FINISH.equals(mediaProcess.getStatus())){
+            mediaProcessMapper.delete(queryWrapper);
+        }
+        // 3.删除minio文件系统中的文件: 分块文件、分块合并文件、转码文件
+        String bucket = mediaFiles.getBucket();
+        String url = mediaFiles.getUrl();
+        String filePath = mediaFiles.getFilePath();
+        this.removeObjectFromMinIo(bucket, filePath);
+        if (url != null){
+            this.removeObjectFromMinIo(bucket, url);
+        }
+
+        return affectRows;
+    }
+
+    /**
+     * minio移除文件
+     * @param bucket 桶
+     * @param objectName 对象名称
+     */
+    private void removeObjectFromMinIo(String bucket, String objectName){
+        RemoveObjectArgs removeObjectArgs = RemoveObjectArgs.builder()
+                .bucket(bucket)
+                .object(objectName)
+                .build();
+        try {
+            minioClient.removeObject(removeObjectArgs);
+        } catch (Exception e){
+            log.error("minio删除文件失败! objectName: {}", objectName);
+            throw new XueChengPlusException("minio删除文件失败!");
+        }
+    }
+
+    /**
      * 根据扩展名获取MimeType
      * @param extension 文件扩展名
      * @return MimeType

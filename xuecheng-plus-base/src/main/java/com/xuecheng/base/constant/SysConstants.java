@@ -31,17 +31,17 @@ public class SysConstants {
     /**
      * 图片mimeType
      */
-    public static final CharSequence IMAGE_TYPE = "image";
+    public static final String IMAGE_TYPE = "image";
 
     /**
      * mp4视频mimeType
      */
-    public static final CharSequence MP4_TYPE = "mp4";
+    public static final String MP4_TYPE = "mp4";
 
     /**
      * avi视频mimeType
      */
-    public static final CharSequence AVI_TYPE = "video/x-msvideo";
+    public static final String AVI_TYPE = "video/x-msvideo";
 
     /**
      * 视频任务未处理: 1

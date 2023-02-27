@@ -110,4 +110,11 @@ public interface MediaFileService {
      * @param objectName 对象名称
      */
     void addMediaFilesToMinIo(String filePath, String bucket, String objectName);
+
+    /**
+     * 移除媒资文件
+     * @param fileMd5 文件md5
+     * @return 受影响的行数
+     */
+    int removeMediaFiles(String fileMd5);
 }

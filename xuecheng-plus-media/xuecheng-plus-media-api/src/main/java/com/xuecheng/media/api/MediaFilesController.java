@@ -84,4 +84,15 @@ public class MediaFilesController {
         return RestResponse.success(mediaFiles.getUrl());
     }
 
+    /**
+     * 移除媒资文件
+     * @param fileMd5 文件md5
+     * @return RestResponse
+     */
+    @DeleteMapping("/{fileMd5}")
+    public RestResponse<?> removeMediaFiles(@PathVariable("fileMd5") String fileMd5){
+        int affectRows = mediaFileService.removeMediaFiles(fileMd5);
+        return RestResponse.success(affectRows);
+    }
+
 }
