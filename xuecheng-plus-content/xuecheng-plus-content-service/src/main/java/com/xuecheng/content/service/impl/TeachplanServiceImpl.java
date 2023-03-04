@@ -3,6 +3,7 @@ package com.xuecheng.content.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuecheng.base.constant.SysConstants;
 import com.xuecheng.base.exception.XueChengPlusException;
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.content.mapper.TeachplanMapper;
 import com.xuecheng.content.mapper.TeachplanMediaMapper;
 import com.xuecheng.content.model.dto.BindTeachplanMediaDto;
@@ -11,6 +12,7 @@ import com.xuecheng.content.model.dto.TeachplanDto;
 import com.xuecheng.content.model.po.Teachplan;
 import com.xuecheng.content.model.po.TeachplanMedia;
 import com.xuecheng.content.service.TeachplanService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,6 +120,31 @@ public class TeachplanServiceImpl implements TeachplanService {
         teachplanMedia.setCreateDate(LocalDateTime.now());
         teachplanMediaMapper.insert(teachplanMedia);
         return teachplanMedia;
+    }
+
+    /**
+     * 移除课程计划和媒资信息绑定
+     *
+     * @param teachPlanId 课程计划id
+     * @param mediaId     媒体id
+     * @return RestResponse
+     */
+    @Override
+    public RestResponse<?> removeAssociationMedia(Long teachPlanId, String mediaId) {
+        if (teachPlanId == null || teachPlanId <= 0){
+            throw new XueChengPlusException("课程计划id不合法!");
+        }
+        if(StringUtils.isBlank(mediaId)){
+            throw new XueChengPlusException("媒体id不合法!");
+        }
+        LambdaQueryWrapper<TeachplanMedia> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TeachplanMedia::getTeachplanId, teachPlanId);
+        queryWrapper.eq(TeachplanMedia::getMediaId, mediaId);
+        int isDelete = teachplanMediaMapper.delete(queryWrapper);
+        if (isDelete <= 0){
+            throw new XueChengPlusException("移除课程计划和媒资信息绑定失败!");
+        }
+        return RestResponse.success();
     }
 
     /**

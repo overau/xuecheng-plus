@@ -1,5 +1,6 @@
 package com.xuecheng.content.api;
 
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.content.model.dto.BindTeachplanMediaDto;
 import com.xuecheng.content.model.dto.SaveTeachplanDto;
 import com.xuecheng.content.model.dto.TeachplanDto;
@@ -42,5 +43,12 @@ public class TeachplanController {
         teachplanService.associationMedia(bindTeachplanMediaDto);
     }
 
+    @ApiOperation(value = "删除课程计划和媒资信息绑定")
+    @DeleteMapping("/teachplan/association/media/{teachPlanId}/{mediaId}")
+    public RestResponse<?> removeAssociationMedia(
+            @PathVariable("teachPlanId") Long teachPlanId,
+            @PathVariable("mediaId") String mediaId){
+        return teachplanService.removeAssociationMedia(teachPlanId, mediaId);
+    }
 
 }

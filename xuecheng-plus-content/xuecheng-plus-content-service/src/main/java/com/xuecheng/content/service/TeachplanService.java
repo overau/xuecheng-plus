@@ -1,5 +1,6 @@
 package com.xuecheng.content.service;
 
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.content.model.dto.BindTeachplanMediaDto;
 import com.xuecheng.content.model.dto.SaveTeachplanDto;
 import com.xuecheng.content.model.dto.TeachplanDto;
@@ -43,4 +44,11 @@ public interface TeachplanService {
      */
     TeachplanMedia buildAssociationMedia(BindTeachplanMediaDto bindTeachplanMediaDto, Long courseId);
 
+    /**
+     * 移除课程计划和媒资信息绑定
+     * @param teachPlanId 课程计划id
+     * @param mediaId 媒体id
+     * @return RestResponse
+     */
+    RestResponse<?> removeAssociationMedia(Long teachPlanId, String mediaId);
 }
