@@ -57,4 +57,9 @@ public class SysConstants {
      * 视频任务处理失败
      */
     public static final String VIDEO_FAILURE = "3";
+
+    /**
+     * 根计划id
+     */
+    public static final Long ROOT_PLAN_ID = 0L;
 }

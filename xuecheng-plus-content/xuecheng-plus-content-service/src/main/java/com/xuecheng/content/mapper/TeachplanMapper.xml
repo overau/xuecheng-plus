@@ -27,4 +27,48 @@
         id, pname, parentid, grade, media_type, start_time, end_time, description, timelength, orderby, course_id, course_pub_id, status, is_preview, create_date, change_date
     </sql>
 
+    <resultMap id="teachplanDtoMap" type="com.xuecheng.content.model.dto.TeachplanDto">
+        <id column="id" property="id" />
+        <result column="pname" property="pname" />
+        <result column="parentid" property="parentid" />
+        <result column="grade" property="grade" />
+        <result column="media_type" property="mediaType" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="description" property="description" />
+        <result column="timelength" property="timelength" />
+        <result column="orderby" property="orderby" />
+        <result column="course_id" property="courseId" />
+        <result column="course_pub_id" property="coursePubId" />
+        <result column="status" property="status" />
+        <result column="is_preview" property="isPreview" />
+        <result column="create_date" property="createDate" />
+        <result column="change_date" property="changeDate" />
+        <association property="teachplanMedia">
+            <result column="media_fileName" property="mediaFilename"/>
+            <result column="teachplanMeidaId" property="id" />
+            <result column="media_id" property="mediaId"/>
+        </association>
+    </resultMap>
+    <select id="selectTreeNodes" resultMap="teachplanDtoMap" parameterType="long">
+        select
+            t1.id,
+            t1.pname,
+            t1.parentid,
+            t1.grade,
+            t1.media_type,
+            t1.start_time,
+            t1.end_time,
+            t1.orderby,
+            t1.course_id,
+            t1.course_pub_id,
+            t2.media_fileName,
+            t2.id as teachplanMeidaId,
+            t2.media_id
+        from teachplan t1
+        left join teachplan_media t2
+        on t1.id = t2.teachplan_id
+        where t1.course_id = #{courseId}
+    </select>
+
 </mapper>
