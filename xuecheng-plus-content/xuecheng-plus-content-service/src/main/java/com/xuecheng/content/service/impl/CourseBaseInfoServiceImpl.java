@@ -69,6 +69,8 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         // 课程发布状态
         queryWrapper.eq(StringUtils.isNotBlank(queryCourseParamsDto.getPublishStatus()),
                 CourseBase::getStatus, queryCourseParamsDto.getPublishStatus());
+        // 根据课程创建时间排序
+        queryWrapper.orderByDesc(CourseBase::getCreateDate);
         // 2.分页查询
         Page<CourseBase> page = new Page<>(pageParams.getPageNo(), pageParams.getPageSize());
         Page<CourseBase> courseBasePage = courseBaseMapper.selectPage(page, queryWrapper);
@@ -77,9 +79,8 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         }
         List<CourseBase> items = courseBasePage.getRecords();
         // 3.封装返回数据
-        PageResult<CourseBase> pageResult = new PageResult<>(items, page.getTotal(),
+        return new PageResult<>(items, page.getTotal(),
                 pageParams.getPageNo(), pageParams.getPageSize());
-        return pageResult;
     }
 
     /**
