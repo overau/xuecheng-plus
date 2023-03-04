@@ -4,14 +4,19 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuecheng.base.constant.SysConstants;
 import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.content.mapper.TeachplanMapper;
+import com.xuecheng.content.mapper.TeachplanMediaMapper;
+import com.xuecheng.content.model.dto.BindTeachplanMediaDto;
 import com.xuecheng.content.model.dto.SaveTeachplanDto;
 import com.xuecheng.content.model.dto.TeachplanDto;
 import com.xuecheng.content.model.po.Teachplan;
+import com.xuecheng.content.model.po.TeachplanMedia;
 import com.xuecheng.content.service.TeachplanService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +31,12 @@ public class TeachplanServiceImpl implements TeachplanService {
 
     @Resource
     private TeachplanMapper teachplanMapper;
+
+    @Resource
+    private TeachplanMediaMapper teachplanMediaMapper;
+
+    @Resource
+    private TeachplanService currentProxy;
 
     /**
      * 根据课程id查询课程计划
@@ -67,6 +78,46 @@ public class TeachplanServiceImpl implements TeachplanService {
             BeanUtils.copyProperties(teachplanDto,teachplanNew);
             teachplanMapper.insert(teachplanNew);
         }
+    }
+
+    /**
+     * 教学计划绑定媒资
+     *
+     * @param bindTeachplanMediaDto 教学计划-媒资绑定信息提交dto
+     * @return 教学计划-媒资绑定信息
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public TeachplanMedia associationMedia(BindTeachplanMediaDto bindTeachplanMediaDto) {
+        // 1.判断教学计划是否存在
+        Teachplan teachplan = teachplanMapper.selectById(bindTeachplanMediaDto.getTeachplanId());
+        if (null == teachplan){
+            throw new XueChengPlusException("教学计划不存在!");
+        }
+        Integer grade = teachplan.getGrade();
+        if(grade != SysConstants.TEACHPLAN_GRADE_TWO){
+            throw new XueChengPlusException("只允许第二级教学计划绑定媒资文件");
+        }
+        // 2.存在，获取课程id
+        Long courseId = teachplan.getCourseId();
+        // 3.建立绑定关系：先删除旧的，在增加新的关系
+        return currentProxy.buildAssociationMedia(bindTeachplanMediaDto, courseId);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public TeachplanMedia buildAssociationMedia(BindTeachplanMediaDto bindTeachplanMediaDto, Long courseId) {
+        LambdaQueryWrapper<TeachplanMedia> queryWrapper = new LambdaQueryWrapper<TeachplanMedia>().eq(
+                TeachplanMedia::getTeachplanId, bindTeachplanMediaDto.getTeachplanId());
+        teachplanMediaMapper.delete(queryWrapper);
+        TeachplanMedia teachplanMedia = new TeachplanMedia();
+        teachplanMedia.setMediaId(bindTeachplanMediaDto.getMediaId());
+        teachplanMedia.setTeachplanId(bindTeachplanMediaDto.getTeachplanId());
+        teachplanMedia.setCourseId(courseId);
+        teachplanMedia.setMediaFilename(bindTeachplanMediaDto.getFileName());
+        teachplanMedia.setCreateDate(LocalDateTime.now());
+        teachplanMediaMapper.insert(teachplanMedia);
+        return teachplanMedia;
     }
 
     /**

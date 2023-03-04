@@ -62,4 +62,9 @@ public class SysConstants {
      * 根计划id
      */
     public static final Long ROOT_PLAN_ID = 0L;
+
+    /**
+     * 教学计划等级：2
+     */
+    public static final int TEACHPLAN_GRADE_TWO = 2;
 }
