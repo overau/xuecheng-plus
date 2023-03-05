@@ -47,7 +47,7 @@ public class TeachplanServiceImpl implements TeachplanService {
      * @return 课程计划信息
      */
     @Override
-    public List<TeachplanDto> findTeachplayTree(Long courseId) {
+    public List<TeachplanDto> findTeachplanTree(Long courseId) {
         // 1.查询课程计划
         if (courseId == null || courseId <= 0){
             throw new XueChengPlusException("课程id非法!");

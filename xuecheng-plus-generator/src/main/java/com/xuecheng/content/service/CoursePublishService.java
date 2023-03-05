@@ -1,16 +1,16 @@
 package com.xuecheng.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.xuecheng.content.model.po.CourseBase;
+import com.xuecheng.content.model.po.CoursePublish;
 
 /**
  * <p>
- * 课程基本信息 服务类
+ * 课程发布 服务类
  * </p>
  *
  * @author HeJin
  * @since 2023-03-05
  */
-public interface CourseBaseService extends IService<CourseBase> {
+public interface CoursePublishService extends IService<CoursePublish> {
 
 }

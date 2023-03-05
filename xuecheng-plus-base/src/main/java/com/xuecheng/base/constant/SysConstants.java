@@ -67,4 +67,9 @@ public class SysConstants {
      * 教学计划等级：2
      */
     public static final int TEACHPLAN_GRADE_TWO = 2;
+
+    /**
+     * 审核已提交
+     */
+    public static final String AUDIT_COMMIT = "202003";
 }

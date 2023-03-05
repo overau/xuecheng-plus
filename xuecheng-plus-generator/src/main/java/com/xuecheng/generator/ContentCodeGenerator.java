@@ -44,8 +44,8 @@ public class ContentCodeGenerator {
 			"teachplan",
 			"teachplan_media",
 			"course_teacher",
-			//"course_publish",
-			//"course_publish_pre",
+			"course_publish",
+			"course_publish_pre",
 			"course_category"
 	};
 

@@ -1,7 +1,7 @@
 package com.xuecheng.content.service;
 
-import com.xuecheng.content.model.po.CourseTeacher;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.xuecheng.content.model.po.CourseTeacher;
 
 /**
  * <p>
@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author HeJin
- * @since 2023-02-20
+ * @since 2023-03-05
  */
 public interface CourseTeacherService extends IService<CourseTeacher> {
 

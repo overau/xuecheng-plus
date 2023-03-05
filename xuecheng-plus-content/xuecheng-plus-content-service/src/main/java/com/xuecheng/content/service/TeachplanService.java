@@ -21,7 +21,7 @@ public interface TeachplanService {
      * @param courseId 课程id
      * @return 课程计划信息
      */
-    List<TeachplanDto> findTeachplayTree(Long courseId);
+    List<TeachplanDto> findTeachplanTree(Long courseId);
 
     /**
      * 保存课程计划: 包括新增和修改
