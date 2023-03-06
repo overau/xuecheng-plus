@@ -66,3 +66,6 @@ Content-Type: application/json
   "auditStatus": "202002",
   "courseName": ""
 }
+
+### 课程发布
+POST {{gateway_host}}/content/coursepublish/130
