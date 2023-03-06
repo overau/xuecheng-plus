@@ -72,4 +72,14 @@ public class SysConstants {
      * 审核已提交
      */
     public static final String AUDIT_COMMIT = "202003";
+
+    /**
+     * 审核通过
+     */
+    public static final String AUDIT_FINISH = "202004";
+
+    /**
+     * 已发布
+     */
+    public static final String PUBLISH_FINISH = "203002";
 }
