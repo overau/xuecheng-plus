@@ -19,7 +19,7 @@ public class MediaServiceClientFallbackFactory implements FallbackFactory<MediaS
         return (file, folder, objectName) -> {
             // 降级方法
             log.debug("调用媒资管理服务上传文件发生熔断: {}", throwable.getMessage());
-            return "媒资管理服务上传文件降级";
+            return null;
         };
     }
 

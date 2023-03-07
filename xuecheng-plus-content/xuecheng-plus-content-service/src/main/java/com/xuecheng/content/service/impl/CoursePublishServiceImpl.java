@@ -3,6 +3,8 @@ package com.xuecheng.content.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.xuecheng.base.constant.SysConstants;
 import com.xuecheng.base.exception.XueChengPlusException;
+import com.xuecheng.content.config.MultipartSupportConfig;
+import com.xuecheng.content.feignclient.MediaServiceClient;
 import com.xuecheng.content.mapper.CourseBaseMapper;
 import com.xuecheng.content.mapper.CourseMarketMapper;
 import com.xuecheng.content.mapper.CoursePublishMapper;
@@ -19,15 +21,28 @@ import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.content.service.TeachplanService;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MqMessageService;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 课程预览、发布service实现
@@ -35,6 +50,7 @@ import java.util.List;
  * @version 1.0
  * @since 2023/03/05 10:08
  */
+@Slf4j
 @Service
 public class CoursePublishServiceImpl implements CoursePublishService {
 
@@ -58,6 +74,12 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Resource
     private MqMessageService mqMessageService;
+
+    @Resource
+    private CoursePublishService coursePublishService;
+
+    @Resource
+    MediaServiceClient mediaServiceClient;
 
     /**
      * 根据课程id获取预览数据
@@ -159,6 +181,54 @@ public class CoursePublishServiceImpl implements CoursePublishService {
         this.saveCoursePublishMessage(courseId);
         //删除课程预发布表对应记录
         coursePublishPreMapper.deleteById(courseId);
+    }
+
+    /**
+     * 课程静态化
+     *
+     * @param courseId 课程id
+     * @return 静态化文件
+     */
+    @Override
+    public File generateCourseHtml(Long courseId) {
+        File htmlFile;
+        try {
+            Configuration configuration = new Configuration(Configuration.getVersion());
+            String classpath = this.getClass().getResource("/").getPath();
+            configuration.setDirectoryForTemplateLoading(new File(classpath + "/templates/"));
+            configuration.setDefaultEncoding("utf-8");
+            Template template = configuration.getTemplate("course_template.ftl");
+            CoursePreviewDto coursePreviewInfo = coursePublishService.getCoursePreviewInfo(130L);
+            Map<String, Object> map = new HashMap<>(1);
+            map.put("model", coursePreviewInfo);
+            String content = FreeMarkerTemplateUtils.processTemplateIntoString(template, map);
+            InputStream inputStream = IOUtils.toInputStream(content);
+            //创建静态化文件
+            htmlFile = File.createTempFile("course",".html");
+            log.debug("课程静态化，生成静态文件:{}",htmlFile.getAbsolutePath());
+            FileOutputStream outputStream = new FileOutputStream(htmlFile);
+            IOUtils.copy(inputStream, outputStream);
+        } catch (IOException | TemplateException e) {
+            log.error("生成发布课程静态化文件失败!课程id: {}", courseId);
+            throw new XueChengPlusException("生成课程静态化文件失败!");
+        }
+        return htmlFile;
+    }
+
+    /**
+     * 上传课程静态化页面
+     *
+     * @param courseId 课程id
+     * @param file     静态化页面
+     */
+    @Override
+    public void uploadCourseHtml(Long courseId, File file) {
+        MultipartFile multipartFile = MultipartSupportConfig.getMultipartFile(file);
+        String result = mediaServiceClient.upload(multipartFile, "course", courseId + ".html");
+        if (null == result){
+            log.error("远程调用媒资服务上传文件失败!课程id: {}, 文件路径: {}", courseId, file.getAbsolutePath());
+            throw new XueChengPlusException("远程调用媒资服务上传文件失败!");
+        }
     }
 
     /**

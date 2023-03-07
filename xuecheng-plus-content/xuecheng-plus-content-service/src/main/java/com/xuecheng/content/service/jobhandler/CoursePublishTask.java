@@ -1,11 +1,17 @@
 package com.xuecheng.content.service.jobhandler;
 
+import com.xuecheng.base.exception.XueChengPlusException;
+import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MessageProcessAbstract;
+import com.xuecheng.messagesdk.service.MqMessageService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.io.File;
 
 /**
  * 课程发布任务
@@ -22,6 +28,12 @@ public class CoursePublishTask extends MessageProcessAbstract {
      * 课程发布消息类型
      */
     public static final String MESSAGE_TYPE = "course_publish";
+
+    @Resource
+    private CoursePublishService coursePublishService;
+
+    @Resource
+    private MqMessageService mqMessageService;
 
     /**
      * 课程发布任务任务调度入口
@@ -48,14 +60,30 @@ public class CoursePublishTask extends MessageProcessAbstract {
     @Override
     public boolean execute(MqMessage mqMessage) {
         log.debug("开始执行课程发布任务, 课程id: {}", mqMessage.getStageState1());
-
-        // 课程信息静态化
-
+        // 课程信息静态化, 并将静态页面上传到minio
+        this.generateCourseHtml(mqMessage, mqMessage.getBusinessKey1());
         // 课程信息保存到Redis
 
         // 课程信息保存到ES
 
-        // 静态页面上传到minio
         return true;
+    }
+
+    private void generateCourseHtml(MqMessage mqMessage, String courseId) {
+        // 判断任务是否完成
+        int stageOne = this.getMqMessageService().getStageOne(mqMessage.getId());
+        if (stageOne > 0){
+            log.debug("当前阶段是静态化课程信息任务已经完成不再处理,任务信息:{}",mqMessage);
+            return ;
+        }
+        // 生成静态文件
+        File file = coursePublishService.generateCourseHtml(Long.valueOf(courseId));
+        if (null == file){
+            throw new XueChengPlusException("课程静态化异常!");
+        }
+        // 上传静态文件
+        coursePublishService.uploadCourseHtml(Long.valueOf(courseId), file);
+        // 完成阶段1任务
+        mqMessageService.completedStageOne(mqMessage.getId());
     }
 }
