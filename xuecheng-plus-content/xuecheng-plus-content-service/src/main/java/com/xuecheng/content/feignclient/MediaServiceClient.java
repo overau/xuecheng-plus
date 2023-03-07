@@ -14,7 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
  * @version 1.0
  * @since 2023/03/07 13:51
  */
-@FeignClient(value = "media-api",configuration = MultipartSupportConfig.class)
+@FeignClient(value = "media-api",
+        configuration = MultipartSupportConfig.class,
+        fallbackFactory = MediaServiceClientFallbackFactory.class)
 public interface MediaServiceClient {
 
     /**
