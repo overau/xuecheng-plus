@@ -17,9 +17,12 @@ import com.xuecheng.content.model.po.CoursePublishPre;
 import com.xuecheng.content.service.CourseBaseInfoService;
 import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.content.service.TeachplanService;
+import com.xuecheng.messagesdk.model.po.MqMessage;
+import com.xuecheng.messagesdk.service.MqMessageService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -52,6 +55,9 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Resource
     private CoursePublishMapper coursePublishMapper;
+
+    @Resource
+    private MqMessageService mqMessageService;
 
     /**
      * 根据课程id获取预览数据
@@ -131,6 +137,7 @@ public class CoursePublishServiceImpl implements CoursePublishService {
      * @param courseId  课程id
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void publish(Long companyId, Long courseId) {
         //约束校验
         CoursePublishPre coursePublishPre = coursePublishPreMapper.selectById(courseId);
@@ -185,6 +192,11 @@ public class CoursePublishServiceImpl implements CoursePublishService {
      * @param courseId 课程id
      */
     private void saveCoursePublishMessage(Long courseId) {
+        MqMessage mqMessage = mqMessageService.addMessage("course_publish",
+                String.valueOf(courseId), null, null);
+        if (null == mqMessage){
+            throw new XueChengPlusException("添加消息记录失败!");
+        }
     }
 
 }
