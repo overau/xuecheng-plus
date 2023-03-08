@@ -1,5 +1,6 @@
 package com.xuecheng.ucenter.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuecheng.ucenter.mapper.XcUserMapper;
 import com.xuecheng.ucenter.model.po.XcUser;
@@ -30,8 +31,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (user == null){
             throw new UsernameNotFoundException("账号不存在!");
         }
-        return User.withUsername(user.getUsername())
-                .password(user.getPassword())
+        String password = user.getPassword();
+        user.setPassword(null);
+        String userJson = JSON.toJSONString(user);
+        return User.withUsername(userJson)
+                .password(password)
                 .authorities("test").build();
     }
 }
