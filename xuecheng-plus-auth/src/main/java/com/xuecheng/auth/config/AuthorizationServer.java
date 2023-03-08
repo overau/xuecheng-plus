@@ -3,6 +3,7 @@ package com.xuecheng.auth.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -28,6 +29,9 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
     @Resource
     private AuthenticationManager authenticationManager;
 
+    @Resource
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public void configure(ClientDetailsServiceConfigurer clients)
             throws Exception {
@@ -35,7 +39,7 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
                 //client_id
                 .withClient("XcWebApp")
                 //客户端密钥
-                .secret("XcWebApp")
+                .secret(passwordEncoder.encode("XcWebApp"))
                 //资源列表
                 .resourceIds("xuecheng-plus")
                 // 该client允许的授权类型authorization_code,password,refresh_token,implicit,client_credentials
