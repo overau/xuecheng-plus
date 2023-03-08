@@ -3,6 +3,7 @@ package com.xuecheng.auth.controller;
 import com.xuecheng.ucenter.mapper.XcUserMapper;
 import com.xuecheng.ucenter.model.po.XcUser;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,11 +36,13 @@ public class LoginController {
         return userMapper.selectById(id);
     }
 
+    @PreAuthorize("hasAuthority('p1')")
     @RequestMapping("/r/r1")
     public String r1() {
         return "访问r1资源";
     }
 
+    @PreAuthorize("hasAuthority('p2')")
     @RequestMapping("/r/r2")
     public String r2() {
         return "访问r2资源";
