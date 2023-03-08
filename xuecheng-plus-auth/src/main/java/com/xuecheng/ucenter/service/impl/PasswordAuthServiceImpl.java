@@ -2,11 +2,13 @@ package com.xuecheng.ucenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuecheng.ucenter.constant.AuthConstants;
+import com.xuecheng.ucenter.feignclient.CheckCodeClient;
 import com.xuecheng.ucenter.mapper.XcUserMapper;
 import com.xuecheng.ucenter.model.dto.AuthParamsDto;
 import com.xuecheng.ucenter.model.dto.XcUserExt;
 import com.xuecheng.ucenter.model.po.XcUser;
 import com.xuecheng.ucenter.service.AuthService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,9 @@ public class PasswordAuthServiceImpl implements AuthService {
     @Resource
     private PasswordEncoder passwordEncoder;
 
+    @Resource
+    private CheckCodeClient checkCodeClient;
+
     /**
      * 认证方法
      *
@@ -35,6 +40,16 @@ public class PasswordAuthServiceImpl implements AuthService {
      */
     @Override
     public XcUserExt execute(AuthParamsDto authParamsDto) {
+        // 验证码校验
+        String code = authParamsDto.getCheckcode();
+        String key = authParamsDto.getCheckcodekey();
+        if(StringUtils.isBlank(code) || StringUtils.isBlank(key)){
+            throw new RuntimeException("验证码为空!");
+        }
+        Boolean verify = checkCodeClient.verify(key, code);
+        if(verify == null || Boolean.FALSE.equals(verify)){
+            throw new RuntimeException("验证码错误!");
+        }
         // 查询数据库
         String username = authParamsDto.getUsername();
         LambdaQueryWrapper<XcUser> queryWrapper = new LambdaQueryWrapper<>();

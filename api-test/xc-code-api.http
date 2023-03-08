@@ -1,0 +1,5 @@
+### 生成验证码
+POST {{checkcode_host}}/checkcode/pic
+
+### 校验验证码
+POST {{checkcode_host}}/checkcode/verify?key=checkcode:b2c113f1e24440c4bcfd7eed2eeeb2d9&code=EOXK
