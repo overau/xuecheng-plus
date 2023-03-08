@@ -4,7 +4,7 @@
 POST {{auth_host}}/auth/oauth/token?client_id=XcWebApp&client_secret=XcWebApp&grant_type=authorization_code&code=xeLvn4&redirect_uri=www.51xuecheng.cn
 
 ### 密码模式
-POST {{auth_host}}/auth/oauth/token?client_id=XcWebApp&client_secret=XcWebApp&grant_type=password&username=admin&password=123456
+POST {{auth_host}}/auth/oauth/token?client_id=XcWebApp&client_secret=XcWebApp&grant_type=password&username={"authType": "password", "username": "admin", "password": "123456"}
 
 
 ###校验jwt令牌
